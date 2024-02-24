@@ -33,7 +33,7 @@ const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
 
 // Baked Material
-const bakedTexture = textureLoader.load('baked.jpg');
+const bakedTexture = textureLoader.load('baked2.jpg');
 bakedTexture.flipY = false;
 bakedTexture.colorSpace = THREE.SRGBColorSpace;
 const bakedMaterial = new THREE.MeshBasicMaterial({ map: bakedTexture });
