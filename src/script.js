@@ -5,6 +5,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import firefliesVertexShader from './shaders/fireflies/vertex.glsl';
 import firefliesFragmentShader from './shaders/fireflies/fragment.glsl';
+import portalVertexShader from './shaders/portal/vertex.glsl';
+import portalFragmentShader from './shaders/portal/fragment.glsl';
 
 /**
  * Base
@@ -44,7 +46,16 @@ const bakedMaterial = new THREE.MeshBasicMaterial({ map: bakedTexture });
 const lampMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffffe5) });
 
 // Portal material
-const portalMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffffff) });
+const portalMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    uTime: { value: 0 },
+    uColorStart: { value: new THREE.Color(0x2d3580) },
+    uColorEnd: { value: new THREE.Color(0xffffff) },
+    uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+  },
+  vertexShader: portalVertexShader,
+  fragmentShader: portalFragmentShader,
+});
 
 gltfLoader.load('portal-unwrap.glb', gltf => {
   const bakedMesh = gltf.scene.children.find(child => child.name === 'baked');
@@ -151,6 +162,7 @@ const tick = () => {
   const elapsedTime = clock.getElapsedTime();
 
   firefliesMaterial.uniforms.uTime.value = elapsedTime;
+  portalMaterial.uniforms.uTime.value = elapsedTime;
 
   // Update controls
   controls.update();
