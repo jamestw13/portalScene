@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import firefliesVertexShader from './shaders/fireflies/vertex.glsl';
+import firefliesFragmentShader from './shaders/fireflies/fragment.glsl';
 
 /**
  * Base
@@ -45,10 +47,8 @@ const lampMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffff
 const portalMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffffff) });
 
 gltfLoader.load('portal-unwrap.glb', gltf => {
-  console.log(gltf.scene.children);
-  gltf.scene.traverse(child => {
-    child.material = bakedMaterial;
-  });
+  const bakedMesh = gltf.scene.children.find(child => child.name === 'baked');
+  bakedMesh.material = bakedMaterial;
   const lamp1 = gltf.scene.children.find(child => child.name === 'Cube011');
   lamp1.material = lampMaterial;
   const lamp2 = gltf.scene.children.find(child => child.name === 'Cube015');
@@ -58,6 +58,40 @@ gltfLoader.load('portal-unwrap.glb', gltf => {
   scene.add(gltf.scene);
 });
 
+// Fireflies
+
+const firefliesGeometry = new THREE.BufferGeometry();
+const firefliesCount = 30;
+const positionArray = new Float32Array(firefliesCount * 3);
+const scaleArray = new Float32Array(firefliesCount * 1);
+
+for (let i = 0; i < firefliesCount; i++) {
+  positionArray[i * 3 + 0] = (Math.random() - 0.5) * 4;
+  positionArray[i * 3 + 1] = Math.random() * 2;
+  positionArray[i * 3 + 2] = (Math.random() - 0.5) * 4;
+
+  scaleArray[i] = Math.random();
+}
+
+firefliesGeometry.setAttribute('position', new THREE.BufferAttribute(positionArray, 3));
+firefliesGeometry.setAttribute('aScale', new THREE.BufferAttribute(scaleArray, 1));
+
+const firefliesMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    uTime: { value: 0 },
+    uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+    uSize: { value: 100 },
+    uTime: { value: 0 },
+  },
+  vertexShader: firefliesVertexShader,
+  fragmentShader: firefliesFragmentShader,
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+
+const fireflies = new THREE.Points(firefliesGeometry, firefliesMaterial);
+scene.add(fireflies);
 /**
  * Sizes
  */
@@ -78,6 +112,8 @@ window.addEventListener('resize', () => {
   // Update renderer
   renderer.setSize(sizes.width, sizes.height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  firefliesMaterial.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2);
 });
 
 /**
@@ -104,6 +140,8 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+renderer.setClearColor(0x080d20);
+
 /**
  * Animate
  */
@@ -111,6 +149,8 @@ const clock = new THREE.Clock();
 
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
+
+  firefliesMaterial.uniforms.uTime.value = elapsedTime;
 
   // Update controls
   controls.update();
