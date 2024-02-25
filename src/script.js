@@ -44,7 +44,8 @@ const lampMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffff
 // Portal material
 const portalMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffffff) });
 
-gltfLoader.load('portal.glb', gltf => {
+gltfLoader.load('portal-unwrap.glb', gltf => {
+  console.log(gltf.scene.children);
   gltf.scene.traverse(child => {
     child.material = bakedMaterial;
   });
